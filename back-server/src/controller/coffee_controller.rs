@@ -50,7 +50,7 @@ pub async fn set_time(req: Json<SetTimerPayload>) -> impl Responder {
             let mut conn = establish_connection();
             let new_time = Time {
                 id: 0, // `id` will be auto-incremented by SQLite
-                time: time.to_string(),
+                time: time.format("%H:%M").to_string(),
             };
 
             diesel::delete(times::table)
@@ -62,9 +62,15 @@ pub async fn set_time(req: Json<SetTimerPayload>) -> impl Responder {
                 .execute(&mut conn)
                 .expect("Error saving new time");
 
-            info!("Inserted new time {} into db.", time.to_string());
+            info!(
+                "Inserted new time {} into db.",
+                time.format("%H:%M").to_string()
+            );
 
-            HttpResponse::Ok().body(format!("The time was set to: {}", time.to_string()))
+            HttpResponse::Ok().body(format!(
+                "The time was set to: {}",
+                time.format("%H:%M").to_string()
+            ))
         }
         Err(_) => HttpResponse::BadRequest()
             .body("Not a valid time. Expected format: %H:%M (for exmaple 14:00)"),
