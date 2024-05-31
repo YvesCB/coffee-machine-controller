@@ -16,3 +16,4 @@ back-server/log
 back-server/.env
 back-server/db.sqlite
 front-server/dist
+front-server/Trunk.toml
