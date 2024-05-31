@@ -1,32 +1,25 @@
-use web_sys::console;
 use yew::prelude::*;
 
 mod api;
 mod components;
+mod model;
 
 use components::on_off_button::OnOffButton;
 use components::set_timer::SetTimer;
-
-#[derive(Properties, PartialEq)]
-pub struct Props {
-    pub on_name_entry: Callback<String>,
-}
-
-#[function_component]
-fn HelloWorld(props: &Props) -> Html {
-    props.on_name_entry.emit(String::from("Bob"));
-
-    html! {
-        <p>{ "Hello" }</p>
-    }
-}
+use components::title::Title;
 
 #[function_component]
 fn App() -> Html {
+    let time = use_state(|| "00:00".to_string());
+    let is_active = use_state(|| false);
+
     html! {
         <div>
-            <SetTimer />
-            <OnOffButton />
+            <Title time={time.clone()} is_active={is_active.clone()}/>
+            <div class={classes!("main-container")}>
+                <SetTimer time={time.clone()} is_active={is_active.clone()}/>
+                <OnOffButton />
+            </div>
         </div>
     }
 }

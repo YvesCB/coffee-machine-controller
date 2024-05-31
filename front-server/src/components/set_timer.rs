@@ -1,97 +1,103 @@
-use gloo_net::http::{Request, Response};
-use gloo_net::Error as GlooErr;
-use serde::{Deserialize, Serialize};
 use web_sys::console;
 use yew::prelude::*;
 
 use crate::api::calls as api_calls;
-
-#[derive(Clone, PartialEq, Deserialize, Serialize)]
-struct TimePayload {
-    time: String,
-}
-
-impl TimePayload {
-    fn new(time: &str) -> Self {
-        TimePayload {
-            time: time.to_string(),
-        }
-    }
-}
+use crate::model::*;
 
 #[function_component]
-pub fn SetTimer() -> Html {
-    let time = use_state(|| "00:00".to_string());
+pub fn SetTimer(props: &TimeProp) -> Html {
+    let local_time = use_state(|| (*props.time).clone());
+
     {
-        let time = time.clone();
+        let local_time = local_time.clone();
+        let time = props.time.clone();
+        let is_active = props.is_active.clone();
+
         use_effect_with((), move |_| {
-            let time = time.clone();
             wasm_bindgen_futures::spawn_local(async move {
+                let local_time = local_time.clone();
+                let time = time.clone();
+                let is_active = is_active.clone();
+
                 let fetched_time = api_calls::get_time().await;
 
                 match fetched_time {
-                    Some(fetched_time) => {
-                        time.set(fetched_time);
+                    Ok(ok_time) => match ok_time {
+                        Some(fetched_time) => {
+                            time.set(fetched_time.to_owned());
+                            local_time.set(fetched_time.to_owned());
+                            is_active.set(true);
+                        }
+                        _ => {
+                            time.set("00:00".to_string());
+                            local_time.set("00:00".to_string());
+                            is_active.set(false);
+                        }
+                    },
+                    Err(e) => {
+                        console::log_1(&format!("Could not fetch time: {}", e).into());
+                        local_time.set("00:00".to_string());
+                        is_active.set(false);
                     }
-                    _ => {
-                        time.set("00:00".to_string());
-                    }
-                }
+                };
             });
             || ()
         });
     }
 
     let oninput = {
-        let time = time.clone();
+        let local_time = local_time.clone();
         Callback::from(move |e: InputEvent| {
             if let Some(input) = e.target_dyn_into::<web_sys::HtmlInputElement>() {
-                time.set(input.value());
+                local_time.set(input.value());
             }
         })
     };
 
     let onsubmit = {
-        let time = time.clone();
+        let local_time = local_time.clone();
+        let time = props.time.clone();
+        let is_active = props.is_active.clone();
+
         Callback::from(move |event: web_sys::SubmitEvent| {
             event.prevent_default();
             // Handle form submission logic with the `time` value
-            let message = String::from("submitting");
-            web_sys::console::log_1(&message.into());
+            console::log_1(&format!("Submitting time: {}", *local_time).into());
+            let local_time = local_time.clone();
+            let time = time.clone();
+            let is_active = is_active.clone();
 
-            let time_value = (*time).clone();
             wasm_bindgen_futures::spawn_local(async move {
-                let payload = TimePayload::new(&time_value);
-                let response = Request::post("/api/coffee/set_time")
-                    .header("Content-Type", "application/json")
-                    .body(serde_json::to_string(&payload).unwrap())
-                    .send()
-                    .await;
-
-                match response {
-                    Ok(_) => web_sys::console::log_1(&"Successfully sent the request".into()),
-                    Err(err) => web_sys::console::log_1(&format!("Error: {:?}", err).into()),
-                }
+                match api_calls::set_time(TimePayload::new(local_time.to_string())).await {
+                    Ok(_) => {
+                        time.set((*local_time).clone());
+                        is_active.set(true);
+                        console::log_1(&format!("Time set: {}", *local_time).into());
+                    }
+                    Err(e) => {
+                        console::log_1(&format!("Could not submit time: {}", e).into());
+                    }
+                };
             });
         })
     };
 
     let onclick = {
-        let time = time.clone();
-        Callback::from(move |_| {
-            let has_time = has_time.clone();
-            let time = time.clone();
-            wasm_bindgen_futures::spawn_local(async move {
-                let time = time.clone();
-                let response = Request::delete("/api/coffee/unset_time").send().await;
+        let time = props.time.clone();
+        let is_active = props.is_active.clone();
 
-                match response {
+        Callback::from(move |_| {
+            let time = time.clone();
+            let is_active = is_active.clone();
+            wasm_bindgen_futures::spawn_local(async move {
+                match api_calls::unset_time().await {
                     Ok(_) => {
+                        is_active.set(false);
                         time.set("00:00".to_string());
+                        console::log_1(&"Time unset".into());
                     }
-                    Err(_) => {
-                        web_sys::console::log_1(&"Can't delete time".into());
-                        has_time.set(false);
+                    Err(e) => {
+                        web_sys::console::log_1(&format!("Can't delete time: {}", e).into());
                     }
                 }
             });
@@ -102,11 +108,11 @@ pub fn SetTimer() -> Html {
         <div class={classes!("timer-container")}>
             <form onsubmit={onsubmit}>
                 <div class={classes!("timer-left")}>
-                    <input type={"time"} id={"time-input"} value={(*time).clone()} oninput={oninput} />
+                    <input type={"time"} id={"time-input"} value={(*local_time).clone()} oninput={oninput} />
                 </div>
                 <div class={classes!("timer-right")}>
-                    <button type="submit" class={classes!("my-btn")}>{ "Set" }</button>
-                    <button {onclick} type="button" class={classes!("my-btn")}>{ "Unset" }</button>
+                    <button type="submit" class={classes!("my-btn", "first")}>{ "Set" }</button>
+                    <button {onclick} type="button" class={classes!("my-btn", "red")}>{ "Unset" }</button>
                 </div>
             </form>
         </div>

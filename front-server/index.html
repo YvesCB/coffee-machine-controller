@@ -2,7 +2,74 @@
 <html>
     <head>
         <meta charset="utf-8" />
-        <title>Yew App</title>
+        <title>Coffee Automation</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+            }
+
+            .title-container {
+                max-width: fit-content;
+                margin: 8rem auto;
+                text-align: center;
+            }
+
+            .title-text {
+                font-size: 36pt;
+            }
+
+            .title-time {
+                font-size: 48pt;
+            }
+
+            .main-container {
+                max-width: fit-content;
+                margin: 0 auto;
+                display: flex;
+            }
+
+            .main-container form {
+                display: flex;
+            }
+
+            input {
+                font-size: 22pt;
+            }
+
+            .my-btn {
+                background-color: #ADD8E6; /* Light blue color */
+                color: white;
+                font-size: 1.25em; /* Larger font size */
+                padding: 10px 20px; /* Padding to make it larger */
+                border: none;
+                border-radius: 5px; /* Slightly rounded corners */
+                text-transform: uppercase; /* All caps font */
+                cursor: pointer; /* Pointer cursor on hover */
+                transition: background-color 0.3s ease; /* Smooth transition for hover effect */
+            }
+
+            .my-btn:hover {
+                background-color: #6495ED; /* Darker shade of blue on hover */
+            }
+
+            .my-btn.red {
+                background-color: #c73d22
+            }
+
+            .my-btn.red:hover {
+                background-color: #7a2717;
+            }
+
+            .timer-right {
+                display: flex;
+                flex-direction: column;
+                margin: 0 3rem;
+            }
+
+            .timer-right .first {
+                margin-bottom: 1rem;
+            }
+        </style>
     </head>
     <body></body>
 </html>
