@@ -16,6 +16,7 @@ fn get_time_from_db() -> Option<NaiveTime> {
         .load(&mut conn)
         .expect("Could not load time");
 
+    dbg!(&db_time);
     match db_time.len() {
         0 => None,
         _ => Some(NaiveTime::parse_from_str(&db_time[0].time, "%H:%M").unwrap()),
