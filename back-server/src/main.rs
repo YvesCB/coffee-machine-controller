@@ -27,11 +27,16 @@ async fn main() -> std::io::Result<()> {
 
     thread::spawn(|| loop {
         let cur_time = get_time_from_db();
+        let mut passed = false;
+
         match cur_time {
             Some(time) => {
                 let now = Local::now().time();
-                if now > time {
+                if now > time && !passed {
                     let _ = blink();
+                    passed = true;
+                } else if now < time {
+                    passed = false;
                 }
             }
             None => {}
