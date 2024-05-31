@@ -18,7 +18,7 @@ fn get_time_from_db() -> Option<NaiveTime> {
 
     match db_time.len() {
         0 => None,
-        _ => Some(NaiveTime::parse_from_str(&db_time[0].time, "%H:%M:%S").unwrap()),
+        _ => Some(NaiveTime::parse_from_str(&db_time[0].time, "%H:%M").unwrap()),
     }
 }
 
@@ -45,7 +45,7 @@ pub async fn set_time(req: Json<SetTimerPayload>) -> impl Responder {
     let payload = req.into_inner();
     info!("Connection to /set_time");
 
-    match NaiveTime::parse_from_str(&payload.time, "%H:%M:%S") {
+    match NaiveTime::parse_from_str(&payload.time, "%H:%M") {
         Ok(time) => {
             let mut conn = establish_connection();
             let new_time = Time {
@@ -67,7 +67,7 @@ pub async fn set_time(req: Json<SetTimerPayload>) -> impl Responder {
             HttpResponse::Ok().body(format!("The time was set to: {}", time.to_string()))
         }
         Err(_) => HttpResponse::BadRequest()
-            .body("Not a valid time. Expected format: %H:%M:%S (for exmaple 14:00:25)"),
+            .body("Not a valid time. Expected format: %H:%M (for exmaple 14:00)"),
     }
 }
 

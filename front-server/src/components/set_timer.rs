@@ -30,6 +30,7 @@ pub fn SetTimer() -> Html {
 
                 match response {
                     Ok(res) => {
+                        dbg!(&res);
                         let payload: TimePayload = res.json().await.unwrap();
                         time.set(payload.time);
                     }
