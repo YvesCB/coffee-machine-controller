@@ -26,7 +26,9 @@ async fn main() -> std::io::Result<()> {
         App::new().service(
             web::scope("/api/coffee")
                 .service(coffee_controller::hello)
-                .service(coffee_controller::set_time),
+                .service(coffee_controller::set_time)
+                .service(coffee_controller::unset_time)
+                .service(coffee_controller::toggle_on_off),
         )
     })
     .bind((ip, port))?

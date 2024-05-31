@@ -1,3 +1,4 @@
+use serde::Deserialize;
 use web_sys::console;
 use yew::prelude::*;
 

@@ -1,4 +1,4 @@
-use actix_web::{get, post, web::Json, HttpRequest, HttpResponse, Responder};
+use actix_web::{delete, get, post, web::Json, HttpResponse, Responder};
 use chrono::prelude::*;
 use diesel::prelude::*;
 use log::info;
@@ -6,6 +6,21 @@ use log::info;
 use crate::model::coffee::{SetTimerPayload, Time};
 use crate::schema::times;
 use crate::util::db_interaction::*;
+use crate::util::gpio;
+
+fn get_time_from_db() -> Option<NaiveTime> {
+    let mut conn = establish_connection();
+
+    let db_time: Vec<Time> = times::dsl::times
+        .select(Time::as_select())
+        .load(&mut conn)
+        .expect("Could not load time");
+
+    match db_time.len() {
+        0 => None,
+        _ => Some(NaiveTime::parse_from_str(&db_time[0].time, "%H:%M:%S").unwrap()),
+    }
+}
 
 /// Getting the time that is currently set
 ///
@@ -14,7 +29,10 @@ use crate::util::db_interaction::*;
 pub async fn hello() -> impl Responder {
     info!("Connection to /start_time");
 
-    let cur_time = Utc::now().naive_utc();
+    let cur_time = match get_time_from_db() {
+        Some(time) => time.to_string(),
+        None => "Nothing".to_string(),
+    };
 
     HttpResponse::Ok().body(format!("The current time is: {}", cur_time.to_string()))
 }
@@ -27,21 +45,30 @@ pub async fn set_time(req: Json<SetTimerPayload>) -> impl Responder {
     let payload = req.into_inner();
     info!("Connection to /set_time");
 
-    let mut conn = establish_connection();
-    let new_time = Time {
-        id: 0, // `id` will be auto-incremented by SQLite
-        time: payload.time.to_string(),
-    };
+    match NaiveTime::parse_from_str(&payload.time, "%H:%M:%S") {
+        Ok(time) => {
+            let mut conn = establish_connection();
+            let new_time = Time {
+                id: 0, // `id` will be auto-incremented by SQLite
+                time: time.to_string(),
+            };
 
-    diesel::insert_into(times::table)
-        .values(&new_time)
-        .execute(&mut conn)
-        .expect("Error saving new time");
+            diesel::delete(times::table)
+                .execute(&mut conn)
+                .expect("Error saving clearing time table");
 
-    let payload_time_str = payload.time.to_string();
-    info!("Inserted new time {payload_time_str} into db.");
+            diesel::insert_into(times::table)
+                .values(&new_time)
+                .execute(&mut conn)
+                .expect("Error saving new time");
 
-    HttpResponse::Ok().body(format!("The time was set to: {}", payload_time_str))
+            info!("Inserted new time {} into db.", time.to_string());
+
+            HttpResponse::Ok().body(format!("The time was set to: {}", time.to_string()))
+        }
+        Err(_) => HttpResponse::BadRequest()
+            .body("Not a valid time. Expected format: %H:%M:%S (for exmaple 14:00:25)"),
+    }
 }
 
 /// Send an On/Off signal to the machine
@@ -52,5 +79,27 @@ pub async fn set_time(req: Json<SetTimerPayload>) -> impl Responder {
 pub async fn toggle_on_off() -> impl Responder {
     info!("Connection to /toggle_on_off");
 
+    match gpio::blink() {
+        Ok(_) => println!("blinked"),
+        Err(_) => println!("can't blink"),
+    };
+
     HttpResponse::Ok().body("Sending on/off signal to machine")
+}
+
+/// Remove set time from db
+///
+/// This endpoint removes the entered time from the database.
+/// That way the timer is no longer running.
+#[delete("/unset_time")]
+pub async fn unset_time() -> impl Responder {
+    info!("Connection to /unset_time");
+
+    let mut conn = establish_connection();
+
+    diesel::delete(times::table)
+        .execute(&mut conn)
+        .expect("Error saving clearing time table");
+
+    HttpResponse::Ok().body("Removed time")
 }
