@@ -1,7 +1,9 @@
 use web_sys::console;
 use yew::prelude::*;
 
+mod api;
 mod components;
+
 use components::on_off_button::OnOffButton;
 use components::set_timer::SetTimer;
 
