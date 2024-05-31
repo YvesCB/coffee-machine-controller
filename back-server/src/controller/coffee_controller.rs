@@ -30,12 +30,12 @@ fn get_time_from_db() -> Option<NaiveTime> {
 pub async fn hello() -> impl Responder {
     info!("Connection to /start_time");
 
-    let cur_time = match get_time_from_db() {
-        Some(time) => time.to_string(),
-        None => "Nothing".to_string(),
-    };
-
-    HttpResponse::Ok().body(format!("The current time is: {}", cur_time.to_string()))
+    match get_time_from_db() {
+        Some(time) => HttpResponse::Ok().json(SetTimerPayload {
+            time: time.format("%H:%M").to_string(),
+        }),
+        None => HttpResponse::NoContent().body("No time set."),
+    }
 }
 
 /// Set the time for the machine to turn on
