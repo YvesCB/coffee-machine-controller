@@ -8,20 +8,6 @@ use crate::schema::times;
 use crate::util::db_interaction::*;
 use crate::util::gpio;
 
-fn get_time_from_db() -> Option<NaiveTime> {
-    let mut conn = establish_connection();
-
-    let db_time: Vec<Time> = times::dsl::times
-        .select(Time::as_select())
-        .load(&mut conn)
-        .expect("Could not load time");
-
-    match db_time.len() {
-        0 => None,
-        _ => Some(NaiveTime::parse_from_str(&db_time[0].time, "%H:%M").unwrap()),
-    }
-}
-
 /// Getting the time that is currently set
 ///
 /// Return the time that is currently set for the machine to turn on from the db.
