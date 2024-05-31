@@ -26,20 +26,26 @@ async fn main() -> std::io::Result<()> {
     dotenv().ok();
 
     thread::spawn(|| loop {
-        let cur_time = get_time_from_db();
-        let mut passed = false;
+        let cur_time: Option<NaiveTime> = get_time_from_db();
 
         match cur_time {
             Some(time) => {
                 let now = Local::now().time();
-                if now > time && !passed {
+
+                if now > time {
                     let _ = blink();
-                    passed = true;
-                } else if now < time {
-                    passed = false;
+
+                    let now = Local::now();
+                    let next_day = now.date_naive().succ_opt().unwrap();
+                    let target_time = next_day.and_time(NaiveTime::from_hms_opt(0, 0, 0).unwrap());
+                    let wait_duration = target_time.signed_duration_since(now.naive_local());
+
+                    thread::sleep(wait_duration.to_std().unwrap());
                 }
             }
-            None => {}
+            None => {
+                // do nothing when it's None
+            }
         }
 
         thread::sleep(Duration::from_millis(2000));
