@@ -15,3 +15,4 @@ Cargo.lock
 back-server/log
 back-server/.env
 back-server/db.sqlite
+front-server/dist

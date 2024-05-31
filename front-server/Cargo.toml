@@ -2,7 +2,11 @@
 name = "front-server"
 version = "0.1.0"
 edition = "2021"
+authors = ["Yves Bruckmayer <y.bruckmayer@gmail.com>"]
+license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+web-sys = "0.3.69"
+yew = { git = "https://github.com/yewstack/yew/", features = ["csr"] }
