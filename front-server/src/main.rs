@@ -1,6 +1,9 @@
-use serde::Deserialize;
 use web_sys::console;
 use yew::prelude::*;
+
+mod components;
+use components::on_off_button::OnOffButton;
+use components::set_timer::SetTimer;
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
@@ -18,25 +21,10 @@ fn HelloWorld(props: &Props) -> Html {
 
 #[function_component]
 fn App() -> Html {
-    let counter = use_state(|| 0);
-    let onclick = {
-        let counter = counter.clone();
-        move |_| {
-            let value = *counter + 1;
-            counter.set(value);
-        }
-    };
-
-    let on_name_entry: Callback<String> = Callback::from(move |name: String| {
-        let greeting = format!("Hello {}", &name);
-        console::log_1(&greeting.into());
-    });
-
     html! {
         <div>
-            <HelloWorld {on_name_entry} />
-            <button {onclick}>{ "+1" }</button>
-            <p>{ *counter }</p>
+            <SetTimer />
+            <OnOffButton />
         </div>
     }
 }
