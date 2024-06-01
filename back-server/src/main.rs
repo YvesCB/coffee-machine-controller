@@ -15,6 +15,8 @@ mod model;
 mod schema;
 mod util;
 
+mod tests;
+
 use controller::coffee_controller;
 use util::db_interaction::*;
 use util::gpio::blink;
