@@ -57,7 +57,7 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
         App::new().service(
             web::scope("/api/coffee")
-                .service(coffee_controller::hello)
+                .service(coffee_controller::start_time)
                 .service(coffee_controller::set_time)
                 .service(coffee_controller::unset_time)
                 .service(coffee_controller::toggle_on_off),

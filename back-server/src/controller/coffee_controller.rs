@@ -12,7 +12,7 @@ use crate::util::gpio;
 ///
 /// Return the time that is currently set for the machine to turn on from the db.
 #[get("/start_time")]
-pub async fn hello() -> impl Responder {
+pub async fn start_time() -> impl Responder {
     info!("Connection to /start_time");
 
     match get_time_from_db() {

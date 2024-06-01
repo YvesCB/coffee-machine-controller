@@ -40,3 +40,12 @@ pub async fn unset_time() -> Result<(), GlooErr> {
         Err(e) => Err(e),
     }
 }
+
+pub async fn toggle_button() -> Result<(), GlooErr> {
+    let response = Request::post("/api/coffee/toggle_on_off").send().await;
+
+    match response {
+        Ok(_res) => Ok(()),
+        Err(e) => Err(e),
+    }
+}
