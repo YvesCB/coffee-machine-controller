@@ -15,6 +15,5 @@ For logging we're using `log4rs` which is easy to setup crate that will allow us
 In the `.env` file we just need to fill in the login information for the database server like so
 
 ```
-user = user_name
-pass = user_pass
+DATABASE_URL = db.sqlite
 ```
